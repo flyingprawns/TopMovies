@@ -22,9 +22,9 @@ Bootstrap(app)
 class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(250), unique=True, nullable=False)
-    year = db.Column(db.Integer, nullable=False)
+    year = db.Column(db.Integer)
     description = db.Column(db.String(500))
-    rating = db.Column(db.Float, nullable=False)
+    rating = db.Column(db.Float)
     ranking = db.Column(db.Integer)
     review = db.Column(db.String(5000))
     img_url = db.Column(db.String(100))
@@ -34,27 +34,16 @@ class Movie(db.Model):
 db.create_all()
 
 
-# -------- Form for rating a movie -------- #
+# -------- WTForms for adding/rating movies -------- #
+class AddMovieForm(FlaskForm):
+    title = StringField(label='Movie title:', validators=[DataRequired()])
+    submit = SubmitField(label='Add movie to list')
+
+
 class RateMovieForm(FlaskForm):
     rating = FloatField(label='Your rating from 0.0 to 10.0:', validators=[DataRequired()])
     review = StringField(label='Your review:', validators=[DataRequired()])
     submit = SubmitField(label='Leave review')
-
-
-# # ----- TESTING: add a movie ----- #
-# new_movie = Movie(
-#     title="Phone Booth 2",
-#     year=2003,
-#     description="Publicist Stuart Shepard finds himself trapped in a phone booth (AGAIN), pinned down by an "
-#                 "extortionist's sniper rifle (AGAIN). Unable to leave or receive outside help, Stuart's "
-#                 "negotiation with the caller leads (AGAIN) to a jaw-dropping climax.",
-#     rating=7.1,
-#     ranking=19,
-#     review="My favourite character was the caller (AGAIN).",
-#     img_url="https://image.tmdb.org/t/p/w500/tjrX2oWRCM3Tvarz38zlZM7Uc10.jpg"
-# )
-# db.session.add(new_movie)
-# db.session.commit()
 
 
 # ------- Website Pages ------- #
@@ -75,6 +64,20 @@ def edit_movie():
         db.session.commit()
         return redirect(url_for('home'))
     return render_template("edit.html", form=edit_form)
+
+
+@app.route("/add", methods=["GET", "POST"])
+def add_movie():
+    add_form = AddMovieForm()
+    if add_form.validate_on_submit():
+        title = add_form.title.data
+        year = 1111
+        rating = 3
+        new_movie = Movie(title=title, year=year, rating=rating)
+        db.session.add(new_movie)
+        db.session.commit()
+        return redirect(url_for('home'))
+    return render_template("add.html", form=add_form)
 
 
 @app.route("/delete")
